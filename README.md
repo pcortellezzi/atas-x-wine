@@ -1,53 +1,53 @@
 # atas-x-wine
 
-Couche de compatibilité et d'intégration pour faire fonctionner la plateforme de trading **ATAS X** sous Linux via Wine/Proton et Wayland.
+Compatibility and integration layer to run the **ATAS X** trading platform under Linux via Wine/Proton and Wayland.
 
 ---
 
-## 🚀 Fonctionnalités
-* **Hook DLL C++ Synchrone** : Intercepte les appels système `SetWindowPos` et `DeferWindowPos` pour masquer proprement les graphiques Vulkan inactifs.
-* **Lanceur d'Injection Suspendue** : Démarre ATAS et injecte le Hook en mémoire avant l'initialisation de l'affichage.
-* **Spoofing HWID / WMI** : Contourne les vérifications d'identification de carte mère pour l'activation.
-* **Zéro Gamescope requis** : Fonctionne directement sur votre compositeur Wayland natif (KDE Plasma, GNOME, etc.).
+## 🚀 Features
+* **Synchronous C++ DLL Hook**: Intercepts `SetWindowPos` and `DeferWindowPos` system calls to cleanly hide inactive Vulkan presentation subsurfaces.
+* **Remote Thread Injection Launcher**: Starts ATAS and injects the Hook DLL into memory prior to display initialization.
+* **HWID / WMI Spoofing**: Bypasses motherboard and drive serial number validation checks for license activation.
+* **No Gamescope Required**: Runs directly on your native Wayland compositor (KDE Plasma, GNOME, etc.).
 
 ---
 
-## 🛠 Structure du Projet
-* `flake.nix` : Définition du paquet NixOS croisant la compilation C++ et configurant le préfixe Wine.
-* `atas_launcher.cpp` : Code source du lanceur par injection de thread distant (Windows 64 bits).
-* `window_hider_hook.cpp` : Code source du Hook DLL Win32 pour le masquage des fenêtres.
-* `dist/` : Paquet universel et autonome pour les autres distributions Linux (Ubuntu, Arch, etc.).
-  - `install_atas.sh` : Script d'installation automatique (Proton, winetricks, patches).
-  - `DISTRIBUTION_GUIDE.md` : Guide d'installation complet pour les non-NixOS.
+## 🛠 Project Structure
+* `flake.nix`: NixOS package definition that cross-compiles C++ targets and configures the Wine prefix.
+* `atas_launcher.cpp`: C++ source code for the remote thread injection suspended-state launcher (Windows 64-bit).
+* `window_hider_hook.cpp`: C++ source code for the Win32 Hook DLL to handle window visibility routing.
+* `dist/`: Universal standalone package for other Linux distributions (Ubuntu, Arch, etc.).
+  - `install_atas.sh`: Automatic installation and bootstrapper script (downloads Proton, runs winetricks, patches DLLs).
+  - `DISTRIBUTION_GUIDE.md`: Comprehensive installation guide for non-NixOS platforms.
 
 ---
 
-## 📦 Utilisation sous NixOS / Nix Flakes
+## 📦 Usage under NixOS / Nix Flakes
 
-### 1. Entrer dans l'environnement de développement
+### 1. Enter the development shell
 ```bash
 nix develop
 ```
 
-### 2. Première installation d'ATAS
-Téléchargez l'installeur officiel d'ATAS (`ATAS_Setup.exe`), puis lancez :
+### 2. Initial ATAS installation
+Download the official ATAS installer (`ATAS_Setup.exe`), then run:
 ```bash
-atas --install /chemin/vers/ATAS_Setup.exe
+atas --install /path/to/ATAS_Setup.exe
 ```
 
-### 3. Lancer ATAS
-Une fois installé, démarrez simplement l'application avec :
+### 3. Run ATAS
+Once installed, simply start the application with:
 ```bash
 atas
 ```
 
-### 4. Mettre à jour ATAS
+### 4. Update ATAS
 ```bash
 atas-updater
 ```
 
 ---
 
-## 🐧 Utilisation sur d'autres distributions (Ubuntu, Arch, Fedora)
+## 🐧 Usage on other distributions (Ubuntu, Arch, Fedora)
 
-Consultez le guide détaillé [dist/DISTRIBUTION_GUIDE.md](dist/DISTRIBUTION_GUIDE.md) pour installer l'application en dehors de NixOS à l'aide de notre package autonome universel.
+See the detailed guide [dist/DISTRIBUTION_GUIDE.md](dist/DISTRIBUTION_GUIDE.md) to install the application outside NixOS using our universal standalone package.

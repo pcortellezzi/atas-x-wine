@@ -1,63 +1,63 @@
-# Guide de Distribution et d'Installation Autonome d'ATAS sous Linux
+# Standalone Distribution & Installation Guide for ATAS under Linux
 
-Ce guide détaille comment installer et faire fonctionner la plateforme de trading **ATAS** sur n'importe quelle distribution Linux (Ubuntu, Arch, Debian, Fedora, etc.) en bénéficiant du masquage synchrone des sous-surfaces Vulkan sous Wayland.
-
----
-
-## 📋 Prérequis Système
-
-Pour que l'installation et le rendu graphique fonctionnent de manière fluide :
-1. **Session Wayland active** (KDE Plasma Wayland ou GNOME Wayland). Le pilote natif Wayland de Wine (`winewayland.drv`) est exploité pour le fenêtrage.
-2. **Pilotes Vulkan installés** et fonctionnels pour votre carte graphique (Mesa RADV pour AMD, pilote NVIDIA officiel pour NVIDIA).
-3. **Utilitaires système requis** :
-   - `wget` et `tar` (pour le téléchargement et l'extraction de Proton).
-   - `python3` (pour l'application automatique des patchs de contournement d'identification de carte mère / HWID).
-   - `winetricks` (pour l'installation automatique des dépendances logicielles de Windows).
-   - `wine` (une version système de Wine installée pour enregistrer les chargeurs).
+This guide details how to install and run the **ATAS** trading platform on any Linux distribution (Ubuntu, Arch, Debian, Fedora, etc.) with synchronous Vulkan subsurface hiding under Wayland.
 
 ---
 
-## 📦 Contenu du Dossier d'Installation
+## 📋 System Requirements
 
-Le dossier `dist/` contient tous les éléments précompilés et scripts automatisés nécessaires :
-* [install_atas.sh](file:///home/philippe/Projects/ATAS/dist/install_atas.sh) : Le script d'installation automatique et d'initialisation du préfixe.
-* [atas_launcher.exe](file:///home/philippe/Projects/ATAS/dist/atas_launcher.exe) : Notre binaire d'injection suspendue C++ (statique).
-* [window_hider_hook.dll](file:///home/philippe/Projects/ATAS/dist/window_hider_hook.dll) : Notre DLL de Hook C++ détournant les appels `SetWindowPos` et `DeferWindowPos` pour masquer proprement les graphiques inactifs sous Wayland.
-* [patch_wbemprox.py](file:///home/philippe/Projects/ATAS/dist/patch_wbemprox.py) : Script Python appliquant les modifications HWID / spoofing directement dans les DLL de Proton.
+To ensure smooth installation and graphics rendering:
+1. **Active Wayland session** (KDE Plasma Wayland or GNOME Wayland). Wine's native Wayland driver (`winewayland.drv`) is used for windowing.
+2. **Vulkan drivers installed** and configured for your GPU (Mesa RADV for AMD, official NVIDIA driver for NVIDIA).
+3. **Required system utilities**:
+   - `wget` and `tar` (for downloading and extracting Proton).
+   - `python3` (for automatically applying motherboard / HWID spoofing patches).
+   - `winetricks` (for automated installation of Windows software dependencies).
+   - `wine` (a system-wide Wine version installed to register binary loaders).
 
 ---
 
-## 🛠 Procédure d'Installation
+## 📦 Package Contents
 
-1. Ouvrez un terminal dans le dossier contenant le script `install_atas.sh` et le fichier d'installation d'ATAS (ex: `ATAS_X_latest.exe`).
-2. Rendez le script exécutable :
+The `dist/` directory contains all pre-compiled assets and automated launch scripts:
+* [install_atas.sh](file:///home/philippe/Projects/ATAS/dist/install_atas.sh): The prefix initialization and automated setup shell script.
+* [atas_launcher.exe](file:///home/philippe/Projects/ATAS/dist/atas_launcher.exe): Our C++ suspended-state remote thread injection launcher (static binary).
+* [window_hider_hook.dll](file:///home/philippe/Projects/ATAS/dist/window_hider_hook.dll): Our C++ Hook DLL that intercepts `SetWindowPos` and `DeferWindowPos` to cleanly hide inactive charts under Wayland.
+* [patch_wbemprox.py](file:///home/philippe/Projects/ATAS/dist/patch_wbemprox.py): Python script that patches HWID / registry endpoints inside Proton's DLL files.
+
+---
+
+## 🛠 Installation Procedure
+
+1. Open a terminal in the folder containing `install_atas.sh` and the ATAS Windows installer (e.g., `ATAS_Setup.exe`).
+2. Make the installer script executable:
    ```bash
    chmod +x install_atas.sh
    ```
-3. Exécutez l'installation en passant le chemin de l'installeur Windows d'ATAS en paramètre :
+3. Run the installation script, passing the path of the ATAS setup executable as an argument:
    ```bash
-   ./install_atas.sh /chemin/vers/ATAS_X_latest.exe
+   ./install_atas.sh /path/to/ATAS_Setup.exe
    ```
 
-### Que fait le script d'installation ?
-1. **Vérifie et configure Proton** : Télécharge automatiquement `GE-Proton11-1`, l'extrait et applique le patch binaire de spoofing HWID sur `wbemprox.dll` pour que la licence ATAS s'active sans erreur.
-2. **Initialise le WINEPREFIX** : Crée un préfixe Wine 64 bits isolé dans `~/.local/share/atas-linux/prefix`.
-3. **Installe les Dépendances Windows** : Installe de manière silencieuse via `winetricks` les composants requis :
-   - `vcrun2022` (runtimes Microsoft Visual C++).
-   - `dotnetdesktop8` (runtime .NET 8 Desktop).
-   - `winhttp` et `d3dcompiler_47` (requis par le moteur d'ATAS).
-   - `corefonts` (polices standard).
-4. **Applique les correctifs de Registre** : Modifie la base de registre Wine pour activer le pilote graphique Wayland natif, injecte les identifiants processeur/disque durs spoofés, et active le contournement de l'infrastructure WMI.
-5. **Déploie la DLL de Hook** : Installe le lanceur par injection de DLL pour éliminer le bug de superposition graphique.
-6. **Lance l'installeur d'ATAS**.
+### What does the installation script do?
+1. **Verifies and configures Proton**: Automatically downloads `GE-Proton11-1`, extracts it, and applies the HWID spoofing binary patch on `wbemprox.dll` to ensure licensing checks pass.
+2. **Initializes the WINEPREFIX**: Creates an isolated 64-bit Wine prefix under `~/.local/share/atas-linux/prefix`.
+3. **Installs Windows Dependencies**: Silently calls `winetricks` to fetch and configure:
+   - `vcrun2022` (Microsoft Visual C++ runtimes).
+   - `dotnetdesktop8` (.NET 8 Desktop Runtime).
+   - `winhttp` and `d3dcompiler_47` (required by the rendering engine).
+   - `corefonts` (standard Windows fonts).
+4. **Applies Registry Customizations**: Configures the Wine registry to prioritize Wayland windowing, spoofs hardware serials (CPU, disks, BIOS), and registers the WMI COM workaround.
+5. **Deploys Hook DLLs**: Configures the memory injection launcher to bypass Wayland subsurface bugs.
+6. **Starts the ATAS installer**.
 
 ---
 
-## 🚀 Lancement d'ATAS
+## 🚀 Launching ATAS
 
-Une fois l'installation terminée, vous pouvez démarrer ATAS à tout moment via le script généré :
+Once installed, you can start ATAS at any time using the generated launcher script:
 ```bash
 ~/.local/share/atas-linux/atas.sh
 ```
 
-Ce script configure l'ensemble des variables d'environnement nécessaires au moteur Vulkan / Skia d'ATAS (ex: `AVALONIA_RENDERER=vulkan`, `WINEFSYNC=1`, etc.) et exécute l'application de façon fluide.
+This script sets up all required graphics variables for ATAS's Vulkan/Skia engine (e.g. `AVALONIA_RENDERER=vulkan`, `WINEFSYNC=1`, etc.) and runs the application cleanly.
