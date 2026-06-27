@@ -1,0 +1,23 @@
+# Nix build artifacts and environment
+result
+result-*
+.direnv/
+.env
+
+# Python compilation cache
+__pycache__/
+*.pyc
+
+# Runtime logs
+*.log
+
+# Temporary backup files
+*.bkp*
+*.old
+flake.nix.bkp*
+
+# Large Windows executables/DLLs in root (dist/ binaries are preserved)
+*.exe
+*.dll
+!dist/atas_launcher.exe
+!dist/window_hider_hook.dll
