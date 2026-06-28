@@ -7,7 +7,7 @@ export DISPLAY="${DISPLAY:-:0}"
 export WINE_WAYLAND_DISPLAY="${WINE_WAYLAND_DISPLAY:-${WAYLAND_DISPLAY}}"
 export XAUTHORITY="${XAUTHORITY}"
 export PATH="@wineBin@/bin:@winetricks@/bin:$PATH"
-export LD_LIBRARY_PATH="@nss@/lib:@gnutls@/lib:@vulkanLoader@/lib:@libGL@/lib:@freetype@/lib:@fontconfig@/lib:@libpng@/lib:@zlib@/lib:@bzip2@/lib:@brotli@/lib:@expat@/lib:@wayland@/lib:@libdecor@/lib:@libxkbcommon@/lib:@libX11@/lib:@libXext@/lib:@pkgsi686Freetype@/lib:@pkgsi686Fontconfig@/lib:@pkgsi686Libpng@/lib:@pkgsi686Zlib@/lib:@pkgsi686Bzip2@/lib:@pkgsi686Brotli@/lib:@pkgsi686Expat@/lib:@pkgsi686Wayland@/lib:@pkgsi686Libdecor@/lib:@pkgsi686Libxkbcommon@/lib:@pkgsi686Libx11@/lib:@pkgsi686Libxext@/lib:@libpulse@/lib:@alsaLib@/lib:@pkgsi686Libpulse@/lib:@pkgsi686AlsaLib@/lib:@wineBin@/lib/x86_64-linux-gnu:@wineBin@/lib:@wineBin@/lib/wine/x86_64-unix:@wineBin@/lib/wine/i386-unix:/run/opengl-driver/lib:/run/opengl-driver-32/lib"
+export LD_LIBRARY_PATH="@nss@/lib:@gnutls@/lib:@vulkanLoader@/lib:@libGL@/lib:@freetype@/lib:@fontconfig@/lib:@libpng@/lib:@zlib@/lib:@bzip2@/lib:@brotli@/lib:@expat@/lib:@wayland@/lib:@libdecor@/lib:@libxkbcommon@/lib:@libX11@/lib:@libXext@/lib:@pkgsi686Freetype@/lib:@pkgsi686Fontconfig@/lib:@pkgsi686Libpng@/lib:@pkgsi686Zlib@/lib:@pkgsi686Bzip2@/lib:@pkgsi686Brotli@/lib:@pkgsi686Expat@/lib:@pkgsi686Wayland@/lib:@pkgsi686Libdecor@/lib:@pkgsi686Libxkbcommon@/lib:@pkgsi686Libx11@/lib:@pkgsi686Libxext@/lib:@libpulse@/lib:@alsaLib@/lib:@pkgsi686Libpulse@/lib:@pkgsi686AlsaLib@/lib:@udev@/lib:@pkgsi686Udev@/lib:@wineBin@/lib/x86_64-linux-gnu:@wineBin@/lib:@wineBin@/lib/wine/x86_64-unix:@wineBin@/lib/wine/i386-unix:/run/opengl-driver/lib:/run/opengl-driver-32/lib"
 export SSL_CERT_DIR="@cacert@/etc/ssl/certs"
  # Force integrated AMD Radeon GPU usage (bypasses Nvidia hybrid offload bugs)
  export VK_ICD_FILENAMES="/run/opengl-driver/share/vulkan/icd.d/radeon_icd.x86_64.json"
@@ -107,6 +107,7 @@ wine reg add "HKLM\\Software\\Microsoft\\Cryptography" /v MachineGuid /t REG_SZ 
 wine reg add "HKLM\\HARDWARE\\Description\\System\\BIOS" /v BIOSSerialNumber /t REG_SZ /d "ATAS-SN-2026-X11" /f >/dev/null 2>&1
 wine reg add "HKLM\\HARDWARE\\Description\\System\\BIOS" /v BaseBoardSerialNumber /t REG_SZ /d "MB-ATAS-998877" /f >/dev/null 2>&1
 wine reg add "HKCU\\Software\\Wine\\Drivers" /v Graphics /t REG_SZ /d "wayland,x11" /f >/dev/null 2>&1
+wine reg add "HKCU\\Software\\Wine\\Drivers" /v Audio /t REG_SZ /d "pulse" /f >/dev/null 2>&1
 wine reg delete "HKCU\\Software\\Wine\\Explorer" /v Desktop /f >/dev/null 2>&1 || true
 wine reg delete "HKCU\\Software\\Wine\\Explorer\\Desktops" /f >/dev/null 2>&1 || true
 

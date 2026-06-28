@@ -117,6 +117,8 @@ done
           "@alsaLib@"
           "@pkgsi686Libpulse@"
           "@pkgsi686AlsaLib@"
+          "@udev@"
+          "@pkgsi686Udev@"
           "@cacert@"
           "@windowHiderHook@"
           "@atasLauncher@"
@@ -155,6 +157,8 @@ done
           "${pkgs.alsa-lib}"
           "${pkgs.pkgsi686Linux.libpulseaudio}"
           "${pkgs.pkgsi686Linux.alsa-lib}"
+          "${pkgs.udev}"
+          "${pkgs.pkgsi686Linux.udev}"
           "${pkgs.cacert.unbundled}"
           "${window-hider-hook}"
           "${atas-launcher}"
@@ -196,6 +200,8 @@ done
           "@alsaLib@"
           "@pkgsi686Libpulse@"
           "@pkgsi686AlsaLib@"
+          "@udev@"
+          "@pkgsi686Udev@"
           "@cacert@"
         ] [
           "${wine-bin}"
@@ -232,6 +238,8 @@ done
           "${pkgs.alsa-lib}"
           "${pkgs.pkgsi686Linux.libpulseaudio}"
           "${pkgs.pkgsi686Linux.alsa-lib}"
+          "${pkgs.udev}"
+          "${pkgs.pkgsi686Linux.udev}"
           "${pkgs.cacert.unbundled}"
         ] (builtins.readFile ./atas-updater.sh);
         atas-updater = pkgs.writeShellScriptBin "atas-updater" atas-updater-sh-content;

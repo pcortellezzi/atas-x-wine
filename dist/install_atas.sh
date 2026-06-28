@@ -115,6 +115,7 @@ Windows Registry Editor Version 5.00
 
 [HKEY_CURRENT_USER\Software\Wine\Drivers]
 "Graphics"="wayland,x11"
+"Audio"="pulse"
 REGEOF
 
 wine regedit /C "$WINEPREFIX/customizations.reg"
