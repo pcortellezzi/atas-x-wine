@@ -1,0 +1,77 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: determinate-systems/nix-installer-action@v12
+
+      - name: Build C++ Binaries via Nix
+        run: |
+          nix build .#atas-launcher --no-link
+          nix build .#window-hider-hook --no-link
+          
+          # Extract compiled binaries
+          mkdir -p build-assets
+          cp -f $(nix eval --raw .#atas-launcher.outPath)/bin/atas_launcher.exe build-assets/
+          cp -f $(nix eval --raw .#window-hider-hook.outPath)/lib/window_hider_hook.dll build-assets/
+
+      - name: Generate Generic Shell Scripts
+        run: |
+          # Generate atas.sh
+          sed -e 's|@wineBin@/bin:@winetricks@/bin:|/usr/bin:|g' \
+              -e 's|@wineBin@|$PROTON_DIR|g' \
+              -e 's|export LD_LIBRARY_PATH=.*|export LD_LIBRARY_PATH="$PROTON_DIR/lib:$PROTON_DIR/lib64:$LD_LIBRARY_PATH"|g' \
+              -e 's|@cacert@/etc/ssl/certs|/etc/ssl/certs|g' \
+              -e 's|@windowHiderHook@/lib/window_hider_hook.dll|$INSTALL_DIR/window_hider_hook.dll|g' \
+              -e 's|@atasLauncher@/bin/atas_launcher.exe|$INSTALL_DIR/atas_launcher.exe|g' \
+              atas.sh > build-assets/atas.sh
+          chmod +x build-assets/atas.sh
+          
+          # Generate atas-updater.sh
+          sed -e 's|@wineBin@/bin:@winetricks@/bin:|/usr/bin:|g' \
+              -e 's|@wineBin@|$PROTON_DIR|g' \
+              -e 's|export LD_LIBRARY_PATH=.*|export LD_LIBRARY_PATH="$PROTON_DIR/lib:$PROTON_DIR/lib64:$LD_LIBRARY_PATH"|g' \
+              -e 's|@cacert@/etc/ssl/certs|/etc/ssl/certs|g' \
+              atas-updater.sh > build-assets/atas-updater.sh
+          chmod +x build-assets/atas-updater.sh
+          
+          # Copy installer and scripts to release folder
+          cp dist/install_atas.sh build-assets/
+          cp dist/patch_wbemprox.py build-assets/
+          cp dist/DISTRIBUTION_GUIDE.md build-assets/
+
+      - name: Create Portable Tarball
+        run: |
+          tar -czf atas-x-wine-portable.tar.gz -C build-assets .
+
+      - name: Upload Artifacts (Action Run)
+        uses: actions/upload-artifact@v4
+        with:
+          name: atas-x-wine-portable
+          path: atas-x-wine-portable.tar.gz
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            atas-x-wine-portable.tar.gz
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
