@@ -16,8 +16,10 @@ __pycache__/
 *.old
 flake.nix.bkp*
 
-# Large Windows executables/DLLs in root (dist/ binaries are preserved)
+# Windows binaries
 *.exe
 *.dll
-!dist/atas_launcher.exe
-!dist/window_hider_hook.dll
+
+# Generated generic distribution scripts
+dist/atas.sh
+dist/atas-updater.sh
