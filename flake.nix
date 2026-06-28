@@ -244,10 +244,59 @@ done
         ] (builtins.readFile ./atas-updater.sh);
         atas-updater = pkgs.writeShellScriptBin "atas-updater" atas-updater-sh-content;
 
+        desktopItemAtas = pkgs.makeDesktopItem {
+          name = "atas";
+          exec = "atas";
+          icon = "atas";
+          desktopName = "ATAS X";
+          comment = "ATAS X trading platform (Wine/Proton)";
+          categories = [ "Finance" ];
+          terminal = false;
+        };
+
+        desktopItemAtasUpdater = pkgs.makeDesktopItem {
+          name = "atas-updater";
+          exec = "atas-updater";
+          icon = "atas";
+          desktopName = "ATAS X Updater";
+          comment = "Update ATAS X trading platform";
+          categories = [ "Finance" ];
+          terminal = true;
+        };
+
+        atas-package = pkgs.runCommand "atas-x-wine-0.1.0" {
+          inherit desktopItemAtas desktopItemAtasUpdater;
+          meta.mainProgram = "atas";
+        } ''
+          mkdir -p $out/bin $out/lib $out/share/applications $out/share/icons/hicolor/48x48/apps $out/share/icons/hicolor/128x128/apps
+
+          # Copy hook DLL and launcher exe
+          cp ${window-hider-hook}/lib/window_hider_hook.dll $out/lib/
+          cp ${atas-launcher}/bin/atas_launcher.exe $out/bin/
+
+          # Copy wrappers
+          cp ${atas}/bin/atas $out/bin/atas
+          cp ${atas-updater}/bin/atas-updater $out/bin/atas-updater
+
+          chmod +x $out/bin/atas $out/bin/atas-updater
+
+          # Copy icons
+          cp ${./icon.png} $out/share/icons/hicolor/48x48/apps/atas.png
+          cp ${./icon-128.png} $out/share/icons/hicolor/128x128/apps/atas.png
+
+          # Copy desktop files
+          cp $desktopItemAtas/share/applications/*.desktop $out/share/applications/
+          cp $desktopItemAtasUpdater/share/applications/*.desktop $out/share/applications/
+        '';
+
       in {
-        packages = { default = wine-bin; inherit wine-bin atas atas-updater ge-proton window-hider-hook atas-launcher; };
+        packages = {
+          default = atas-package;
+          atas-x-wine = atas-package;
+          inherit wine-bin atas atas-updater ge-proton window-hider-hook atas-launcher;
+        };
         devShells.default = pkgs.mkShell {
-          packages = with pkgs; [ wine-bin winetricks python3 atas atas-updater gamescope cage ];
+          packages = with pkgs; [ wine-bin winetricks python3 atas-package gamescope cage ];
           shellHook = ''
 export WINEPREFIX="''${WINEPREFIX:-$HOME/.local/share/wineprefixes/atas}"
 export WINEARCH=win64
