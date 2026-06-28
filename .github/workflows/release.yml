@@ -71,6 +71,34 @@ jobs:
         with:
           files: |
             atas-x-wine-portable.tar.gz
+          body: |
+            # ATAS X under Wine/Proton (Standalone Linux Distribution Package)
+            
+            This release contains the pre-compiled standalone package for running ATAS X on generic Linux distributions (Ubuntu, Debian, Fedora, Arch Linux, etc.).
+            
+            ## 🚀 Installation Instructions
+            
+            1. **Download and Extract**:
+               Download the `atas-x-wine-portable.tar.gz` archive from the assets below and extract it:
+               ```bash
+               tar -xzf atas-x-wine-portable.tar.gz
+               cd atas-x-wine-portable
+               ```
+            
+            2. **Run the Installer**:
+               Run the installation script by providing the path to your downloaded official ATAS setup executable (e.g., `ATAS_Setup.exe` from [atas.net](https://atas.net)):
+               ```bash
+               ./install_atas.sh /path/to/ATAS_Setup.exe
+               ```
+               *The installer will automatically set up the optimized GE-Proton runtime, configure registry tweaks, inject HWID spoofing, and deploy the custom Wayland subsurface hide hook.*
+            
+            3. **Launch ATAS X**:
+               Once installed, you can start ATAS X using the generated desktop launcher in your applications menu, or via terminal:
+               ```bash
+               ./atas.sh
+               ```
+            
+            For more details regarding dependencies, Vulkan drivers, and hybrid graphics setups, please consult the included `DISTRIBUTION_GUIDE.md` file inside the archive.
           draft: false
           prerelease: false
         env:
