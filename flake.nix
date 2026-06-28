@@ -82,79 +82,143 @@ done
           '';
         };
 
-        atas-sh = pkgs.substituteAll {
-          src = ./atas.sh;
-          wineBin = "${wine-bin}";
-          winetricks = "${pkgs.winetricks}";
-          nss = "${pkgs.nss.out}";
-          gnutls = "${pkgs.gnutls.out}";
-          vulkanLoader = "${pkgs.vulkan-loader}";
-          libGL = "${pkgs.libGL}";
-          freetype = "${pkgs.freetype}";
-          fontconfig = "${pkgs.fontconfig.lib}";
-          libpng = "${pkgs.libpng}";
-          zlib = "${pkgs.zlib}";
-          bzip2 = "${pkgs.bzip2.out}";
-          brotli = "${pkgs.brotli.lib}";
-          expat = "${pkgs.expat}";
-          wayland = "${pkgs.wayland}";
-          libdecor = "${pkgs.libdecor}";
-          libxkbcommon = "${pkgs.libxkbcommon}";
-          libX11 = "${pkgs.xorg.libX11}";
-          libXext = "${pkgs.xorg.libXext}";
-          pkgsi686Freetype = "${pkgs.pkgsi686Linux.freetype}";
-          pkgsi686Fontconfig = "${pkgs.pkgsi686Linux.fontconfig.lib}";
-          pkgsi686Libpng = "${pkgs.pkgsi686Linux.libpng}";
-          pkgsi686Zlib = "${pkgs.pkgsi686Linux.zlib}";
-          pkgsi686Bzip2 = "${pkgs.pkgsi686Linux.bzip2.out}";
-          pkgsi686Brotli = "${pkgs.pkgsi686Linux.brotli.lib}";
-          pkgsi686Expat = "${pkgs.pkgsi686Linux.expat}";
-          pkgsi686Wayland = "${pkgs.pkgsi686Linux.wayland}";
-          pkgsi686Libdecor = "${pkgs.pkgsi686Linux.libdecor}";
-          pkgsi686Libxkbcommon = "${pkgs.pkgsi686Linux.libxkbcommon}";
-          pkgsi686Libx11 = "${pkgs.pkgsi686Linux.libx11}";
-          pkgsi686Libxext = "${pkgs.pkgsi686Linux.libxext}";
-          cacert = "${pkgs.cacert.unbundled}";
-          windowHiderHook = "${window-hider-hook}";
-          atasLauncher = "${atas-launcher}";
-        };
-        atas = pkgs.writeShellScriptBin "atas" (builtins.readFile atas-sh);;
+        atas-sh-content = builtins.replaceStrings [
+          "@wineBin@"
+          "@winetricks@"
+          "@nss@"
+          "@gnutls@"
+          "@vulkanLoader@"
+          "@libGL@"
+          "@freetype@"
+          "@fontconfig@"
+          "@libpng@"
+          "@zlib@"
+          "@bzip2@"
+          "@brotli@"
+          "@expat@"
+          "@wayland@"
+          "@libdecor@"
+          "@libxkbcommon@"
+          "@libX11@"
+          "@libXext@"
+          "@pkgsi686Freetype@"
+          "@pkgsi686Fontconfig@"
+          "@pkgsi686Libpng@"
+          "@pkgsi686Zlib@"
+          "@pkgsi686Bzip2@"
+          "@pkgsi686Brotli@"
+          "@pkgsi686Expat@"
+          "@pkgsi686Wayland@"
+          "@pkgsi686Libdecor@"
+          "@pkgsi686Libxkbcommon@"
+          "@pkgsi686Libx11@"
+          "@pkgsi686Libxext@"
+          "@cacert@"
+          "@windowHiderHook@"
+          "@atasLauncher@"
+        ] [
+          "${wine-bin}"
+          "${pkgs.winetricks}"
+          "${pkgs.nss.out}"
+          "${pkgs.gnutls.out}"
+          "${pkgs.vulkan-loader}"
+          "${pkgs.libGL}"
+          "${pkgs.freetype}"
+          "${pkgs.fontconfig.lib}"
+          "${pkgs.libpng}"
+          "${pkgs.zlib}"
+          "${pkgs.bzip2.out}"
+          "${pkgs.brotli.lib}"
+          "${pkgs.expat}"
+          "${pkgs.wayland}"
+          "${pkgs.libdecor}"
+          "${pkgs.libxkbcommon}"
+          "${pkgs.xorg.libX11}"
+          "${pkgs.xorg.libXext}"
+          "${pkgs.pkgsi686Linux.freetype}"
+          "${pkgs.pkgsi686Linux.fontconfig.lib}"
+          "${pkgs.pkgsi686Linux.libpng}"
+          "${pkgs.pkgsi686Linux.zlib}"
+          "${pkgs.pkgsi686Linux.bzip2.out}"
+          "${pkgs.pkgsi686Linux.brotli.lib}"
+          "${pkgs.pkgsi686Linux.expat}"
+          "${pkgs.pkgsi686Linux.wayland}"
+          "${pkgs.pkgsi686Linux.libdecor}"
+          "${pkgs.pkgsi686Linux.libxkbcommon}"
+          "${pkgs.pkgsi686Linux.libx11}"
+          "${pkgs.pkgsi686Linux.libxext}"
+          "${pkgs.cacert.unbundled}"
+          "${window-hider-hook}"
+          "${atas-launcher}"
+        ] (builtins.readFile ./atas.sh);
+        atas = pkgs.writeShellScriptBin "atas" atas-sh-content;
 
-        atas-updater-sh = pkgs.substituteAll {
-          src = ./atas-updater.sh;
-          wineBin = "${wine-bin}";
-          winetricks = "${pkgs.winetricks}";
-          nss = "${pkgs.nss.out}";
-          gnutls = "${pkgs.gnutls.out}";
-          vulkanLoader = "${pkgs.vulkan-loader}";
-          libGL = "${pkgs.libGL}";
-          freetype = "${pkgs.freetype}";
-          fontconfig = "${pkgs.fontconfig.lib}";
-          libpng = "${pkgs.libpng}";
-          zlib = "${pkgs.zlib}";
-          bzip2 = "${pkgs.bzip2.out}";
-          brotli = "${pkgs.brotli.lib}";
-          expat = "${pkgs.expat}";
-          wayland = "${pkgs.wayland}";
-          libdecor = "${pkgs.libdecor}";
-          libxkbcommon = "${pkgs.libxkbcommon}";
-          libX11 = "${pkgs.xorg.libX11}";
-          libXext = "${pkgs.xorg.libXext}";
-          pkgsi686Freetype = "${pkgs.pkgsi686Linux.freetype}";
-          pkgsi686Fontconfig = "${pkgs.pkgsi686Linux.fontconfig.lib}";
-          pkgsi686Libpng = "${pkgs.pkgsi686Linux.libpng}";
-          pkgsi686Zlib = "${pkgs.pkgsi686Linux.zlib}";
-          pkgsi686Bzip2 = "${pkgs.pkgsi686Linux.bzip2.out}";
-          pkgsi686Brotli = "${pkgs.pkgsi686Linux.brotli.lib}";
-          pkgsi686Expat = "${pkgs.pkgsi686Linux.expat}";
-          pkgsi686Wayland = "${pkgs.pkgsi686Linux.wayland}";
-          pkgsi686Libdecor = "${pkgs.pkgsi686Linux.libdecor}";
-          pkgsi686Libxkbcommon = "${pkgs.pkgsi686Linux.libxkbcommon}";
-          pkgsi686Libx11 = "${pkgs.pkgsi686Linux.libx11}";
-          pkgsi686Libxext = "${pkgs.pkgsi686Linux.libxext}";
-          cacert = "${pkgs.cacert.unbundled}";
-        };
-        atas-updater = pkgs.writeShellScriptBin "atas-updater" (builtins.readFile atas-updater-sh);;
+        atas-updater-sh-content = builtins.replaceStrings [
+          "@wineBin@"
+          "@winetricks@"
+          "@nss@"
+          "@gnutls@"
+          "@vulkanLoader@"
+          "@libGL@"
+          "@freetype@"
+          "@fontconfig@"
+          "@libpng@"
+          "@zlib@"
+          "@bzip2@"
+          "@brotli@"
+          "@expat@"
+          "@wayland@"
+          "@libdecor@"
+          "@libxkbcommon@"
+          "@libX11@"
+          "@libXext@"
+          "@pkgsi686Freetype@"
+          "@pkgsi686Fontconfig@"
+          "@pkgsi686Libpng@"
+          "@pkgsi686Zlib@"
+          "@pkgsi686Bzip2@"
+          "@pkgsi686Brotli@"
+          "@pkgsi686Expat@"
+          "@pkgsi686Wayland@"
+          "@pkgsi686Libdecor@"
+          "@pkgsi686Libxkbcommon@"
+          "@pkgsi686Libx11@"
+          "@pkgsi686Libxext@"
+          "@cacert@"
+        ] [
+          "${wine-bin}"
+          "${pkgs.winetricks}"
+          "${pkgs.nss.out}"
+          "${pkgs.gnutls.out}"
+          "${pkgs.vulkan-loader}"
+          "${pkgs.libGL}"
+          "${pkgs.freetype}"
+          "${pkgs.fontconfig.lib}"
+          "${pkgs.libpng}"
+          "${pkgs.zlib}"
+          "${pkgs.bzip2.out}"
+          "${pkgs.brotli.lib}"
+          "${pkgs.expat}"
+          "${pkgs.wayland}"
+          "${pkgs.libdecor}"
+          "${pkgs.libxkbcommon}"
+          "${pkgs.xorg.libX11}"
+          "${pkgs.xorg.libXext}"
+          "${pkgs.pkgsi686Linux.freetype}"
+          "${pkgs.pkgsi686Linux.fontconfig.lib}"
+          "${pkgs.pkgsi686Linux.libpng}"
+          "${pkgs.pkgsi686Linux.zlib}"
+          "${pkgs.pkgsi686Linux.bzip2.out}"
+          "${pkgs.pkgsi686Linux.brotli.lib}"
+          "${pkgs.pkgsi686Linux.expat}"
+          "${pkgs.pkgsi686Linux.wayland}"
+          "${pkgs.pkgsi686Linux.libdecor}"
+          "${pkgs.pkgsi686Linux.libxkbcommon}"
+          "${pkgs.pkgsi686Linux.libx11}"
+          "${pkgs.pkgsi686Linux.libxext}"
+          "${pkgs.cacert.unbundled}"
+        ] (builtins.readFile ./atas-updater.sh);
+        atas-updater = pkgs.writeShellScriptBin "atas-updater" atas-updater-sh-content;
 
       in {
         packages = { default = wine-bin; inherit wine-bin atas atas-updater ge-proton window-hider-hook atas-launcher; };

@@ -13,4 +13,3 @@ export WINEDLLOVERRIDES="mscoree=b;dwrite=b;gdiplus=b"
 EXE_PATH=$(find "$WINEPREFIX/drive_c/Program Files" -name "OFT.Platform.Updater.exe" 2>/dev/null | head -n 1)
 [ -z "$EXE_PATH" ] && EXE_PATH=$(find "$WINEPREFIX/drive_c" -name "OFT.Platform.Updater.exe" 2>/dev/null | head -n 1)
 [ -n "$EXE_PATH" ] && exec wine "$EXE_PATH" "$@" || echo "Updater not found"
-        ''

@@ -6,9 +6,9 @@ export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 export DISPLAY="${DISPLAY:-:0}"
 export WINE_WAYLAND_DISPLAY="${WINE_WAYLAND_DISPLAY:-${WAYLAND_DISPLAY}}"
 export XAUTHORITY="${XAUTHORITY}"
-export PATH="@wineBin@/bin:@winetricks@/bin:$PATH"
-export LD_LIBRARY_PATH="@nss@/lib:@gnutls@/lib:@vulkanLoader@/lib:@libGL@/lib:@freetype@/lib:@fontconfig@/lib:@libpng@/lib:@zlib@/lib:@bzip2@/lib:@brotli@/lib:@expat@/lib:@wayland@/lib:@libdecor@/lib:@libxkbcommon@/lib:@libX11@/lib:@libXext@/lib:@pkgsi686Freetype@/lib:@pkgsi686Fontconfig@/lib:@pkgsi686Libpng@/lib:@pkgsi686Zlib@/lib:@pkgsi686Bzip2@/lib:@pkgsi686Brotli@/lib:@pkgsi686Expat@/lib:@pkgsi686Wayland@/lib:@pkgsi686Libdecor@/lib:@pkgsi686Libxkbcommon@/lib:@pkgsi686Libx11@/lib:@pkgsi686Libxext@/lib:@wineBin@/lib/x86_64-linux-gnu:@wineBin@/lib:@wineBin@/lib/wine/x86_64-unix:@wineBin@/lib/wine/i386-unix:/run/opengl-driver/lib:/run/opengl-driver-32/lib"
-export SSL_CERT_DIR="@cacert@/etc/ssl/certs"
+export PATH="/usr/bin:$PATH"
+export LD_LIBRARY_PATH="$PROTON_DIR/lib:$PROTON_DIR/lib64:$LD_LIBRARY_PATH"
+export SSL_CERT_DIR="/etc/ssl/certs"
  # Force integrated AMD Radeon GPU usage (bypasses Nvidia hybrid offload bugs)
  export VK_ICD_FILENAMES="/run/opengl-driver/share/vulkan/icd.d/radeon_icd.x86_64.json"
  export VK_DRIVER_FILES="/run/opengl-driver/share/vulkan/icd.d/radeon_icd.x86_64.json"
@@ -62,7 +62,7 @@ if [ -z "$(find "$WINEPREFIX/drive_c/Program Files" -name 'OFT.Platform*.exe' 2>
   echo "[1/4] wine prefix..."
   wine wineboot -i 2>&1 | grep -v fixme | tail -3
   for f in libvkd3d-1.dll libvkd3d-shader-1.dll libvkd3d-utils-1.dll; do
-    [ -f "$WINEPREFIX/drive_c/windows/system32/$f" ] || cp "@wineBin@/share/default_pfx/drive_c/windows/system32/$f" "$WINEPREFIX/drive_c/windows/system32/" 2>/dev/null || true
+    [ -f "$WINEPREFIX/drive_c/windows/system32/$f" ] || cp "$PROTON_DIR/share/default_pfx/drive_c/windows/system32/$f" "$WINEPREFIX/drive_c/windows/system32/" 2>/dev/null || true
   done
   echo "[2/4] prerequisites..."
   winetricks -q vcrun2022 dotnetdesktop8 winhttp d3dcompiler_47 corefonts 2>&1 | grep -v fixme | tail -5
@@ -98,7 +98,7 @@ for d in system32 syswow64; do
   done
   # But keep libvkd3d for VulkanSkiaHost if it needs it
   for dll in libvkd3d-1.dll libvkd3d-shader-1.dll libvkd3d-utils-1.dll; do
-    [ -f "$WINEPREFIX/drive_c/windows/$d/$dll" ] || cp "@wineBin@/share/default_pfx/drive_c/windows/$d/$dll" "$WINEPREFIX/drive_c/windows/$d/" 2>/dev/null || true
+    [ -f "$WINEPREFIX/drive_c/windows/$d/$dll" ] || cp "$PROTON_DIR/share/default_pfx/drive_c/windows/$d/$dll" "$WINEPREFIX/drive_c/windows/$d/" 2>/dev/null || true
   done
 done
 
@@ -118,8 +118,8 @@ EXE_PATH=$(find "$WINEPREFIX/drive_c/Program Files" -name "OFT.PlatformX.exe" 2>
 [ -z "$EXE_PATH" ] && EXE_PATH=$(find "$WINEPREFIX/drive_c/Program Files" -name "OFT.Platform.exe" 2>/dev/null | head -n 1)
 [ -z "$EXE_PATH" ] && EXE_PATH=$(find "$WINEPREFIX/drive_c" -name "ATAS*" 2>/dev/null | head -n 1)
 if [ -n "$EXE_PATH" ]; then
-  cp -f "@windowHiderHook@/lib/window_hider_hook.dll" "$WINEPREFIX/drive_c/window_hider_hook.dll"
-  cp -f "@atasLauncher@/bin/atas_launcher.exe" "$WINEPREFIX/drive_c/atas_launcher.exe"
+  cp -f "$INSTALL_DIR/window_hider_hook.dll" "$WINEPREFIX/drive_c/window_hider_hook.dll"
+  cp -f "$INSTALL_DIR/atas_launcher.exe" "$WINEPREFIX/drive_c/atas_launcher.exe"
   wine C:\\atas_launcher.exe "$@"
 else
   echo "ATAS not found"

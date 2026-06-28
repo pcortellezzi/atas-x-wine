@@ -138,66 +138,10 @@ else
     echo "To install ATAS later, run: ./install_atas.sh /path/to/ATAS_Setup.exe"
 fi
 
-# Create launch script
-cat << 'RUNEOF' > "$INSTALL_DIR/atas.sh"
-#!/usr/bin/env bash
-INSTALL_DIR="$HOME/.local/share/atas-linux"
-WINEPREFIX="$INSTALL_DIR/prefix"
-PROTON_DIR="$INSTALL_DIR/proton"
-
-export WINEPREFIX
-export WINEARCH=win64
-export WINEDEBUG="-all"
-export PATH="$PROTON_DIR/bin:$PATH"
-export LD_LIBRARY_PATH="$PROTON_DIR/lib:$PROTON_DIR/lib64:$LD_LIBRARY_PATH"
-export AVALONIA_RENDERER=vulkan WINEFSYNC=1 WINEESYNC=1
-export WINEDLLOVERRIDES="mscoree=b;mshtml=b;wmiutils=b;wbemprox=b;uiautomationcore=d;oleacc=d;dwrite=b"
-export DOTNET_SYSTEM_GLOBALIZATION_USENLS=1
-
-# Locate ATAS executable in prefix
-EXE_PATH=$(find "$WINEPREFIX/drive_c/Program Files" -name "OFT.Platform.exe" 2>/dev/null | head -n 1)
-[ -z "$EXE_PATH" ] && EXE_PATH=$(find "$WINEPREFIX/drive_c" -name "ATAS*" 2>/dev/null | head -n 1)
-
-if [ -n "$EXE_PATH" ]; then
-    # Refresh Hook DLL and Launcher versions
-    cp -f "$INSTALL_DIR/window_hider_hook.dll" "$WINEPREFIX/drive_c/" 2>/dev/null || true
-    cp -f "$INSTALL_DIR/atas_launcher.exe" "$WINEPREFIX/drive_c/" 2>/dev/null || true
-    
-    exec wine C:\\atas_launcher.exe "$@"
-else
-    echo "Error: ATAS executable not found."
-    echo "Please run install_atas.sh with the ATAS setup executable to install the application."
-fi
-RUNEOF
-chmod +x "$INSTALL_DIR/atas.sh"
-
-# Create updater launch script
-cat << 'RUNEOF' > "$INSTALL_DIR/atas-updater.sh"
-#!/usr/bin/env bash
-INSTALL_DIR="$HOME/.local/share/atas-linux"
-WINEPREFIX="$INSTALL_DIR/prefix"
-PROTON_DIR="$INSTALL_DIR/proton"
-
-export WINEPREFIX
-export WINEARCH=win64
-export WINEDEBUG="-all"
-export PATH="$PROTON_DIR/bin:$PATH"
-export LD_LIBRARY_PATH="$PROTON_DIR/lib:$PROTON_DIR/lib64:$LD_LIBRARY_PATH"
-export DISPLAY="${DISPLAY:-:0}"
-export WAYLAND_DISPLAY="" WINE_WAYLAND_DISPLAY=""
-export WINEDLLOVERRIDES="mscoree=b;mshtml=b;wmiutils=b;wbemprox=b;uiautomationcore=d;oleacc=d;dwrite=b"
-
-# Find ATAS Updater executable in prefix
-EXE_PATH=$(find "$WINEPREFIX/drive_c/Program Files" -name "OFT.Platform.Updater.exe" 2>/dev/null | head -n 1)
-[ -z "$EXE_PATH" ] && EXE_PATH=$(find "$WINEPREFIX/drive_c" -name "OFT.Platform.Updater.exe" 2>/dev/null | head -n 1)
-
-if [ -n "$EXE_PATH" ]; then
-    exec wine "$EXE_PATH" "$@"
-else
-    echo "Error: ATAS Updater executable not found."
-fi
-RUNEOF
-chmod +x "$INSTALL_DIR/atas-updater.sh"
+# Deploy launch scripts
+cp -f "$DIST_DIR/atas.sh" "$INSTALL_DIR/atas.sh"
+cp -f "$DIST_DIR/atas-updater.sh" "$INSTALL_DIR/atas-updater.sh"
+chmod +x "$INSTALL_DIR/atas.sh" "$INSTALL_DIR/atas-updater.sh"
 
 # Copy hooks to local installation folder for persistence
 cp -f "$DIST_DIR/window_hider_hook.dll" "$INSTALL_DIR/"
