@@ -252,6 +252,7 @@ done
           comment = "ATAS X trading platform (Wine/Proton)";
           categories = [ "Finance" ];
           terminal = false;
+          startupWMClass = "oft.platform.exe";
         };
 
         desktopItemAtasUpdater = pkgs.makeDesktopItem {
