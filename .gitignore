@@ -23,3 +23,9 @@ flake.nix.bkp*
 # Generated generic distribution scripts
 dist/atas.sh
 dist/atas-updater.sh
+
+# Local diagnostic source files
+print_ntdll.cpp
+window_fixer.cpp
+window_inspector.cpp
+

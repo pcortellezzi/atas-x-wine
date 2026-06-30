@@ -10,12 +10,12 @@ export PATH="@wineBin@/bin:@winetricks@/bin:$PATH"
 export LD_LIBRARY_PATH="@nss@/lib:@gnutls@/lib:@vulkanLoader@/lib:@libGL@/lib:@freetype@/lib:@fontconfig@/lib:@libpng@/lib:@zlib@/lib:@bzip2@/lib:@brotli@/lib:@expat@/lib:@wayland@/lib:@libdecor@/lib:@libxkbcommon@/lib:@libX11@/lib:@libXext@/lib:@pkgsi686Freetype@/lib:@pkgsi686Fontconfig@/lib:@pkgsi686Libpng@/lib:@pkgsi686Zlib@/lib:@pkgsi686Bzip2@/lib:@pkgsi686Brotli@/lib:@pkgsi686Expat@/lib:@pkgsi686Wayland@/lib:@pkgsi686Libdecor@/lib:@pkgsi686Libxkbcommon@/lib:@pkgsi686Libx11@/lib:@pkgsi686Libxext@/lib:@libpulse@/lib:@alsaLib@/lib:@pkgsi686Libpulse@/lib:@pkgsi686AlsaLib@/lib:@udev@/lib:@pkgsi686Udev@/lib:@wineBin@/lib/x86_64-linux-gnu:@wineBin@/lib:@wineBin@/lib/wine/x86_64-unix:@wineBin@/lib/wine/i386-unix:/run/opengl-driver/lib:/run/opengl-driver-32/lib"
 export SSL_CERT_DIR="@cacert@/etc/ssl/certs"
  # Force integrated AMD Radeon GPU usage (bypasses Nvidia hybrid offload bugs)
- export VK_ICD_FILENAMES="/run/opengl-driver/share/vulkan/icd.d/radeon_icd.x86_64.json"
- export VK_DRIVER_FILES="/run/opengl-driver/share/vulkan/icd.d/radeon_icd.x86_64.json"
- export __NV_PRIME_RENDER_OFFLOAD=0
- export __GLX_VENDOR_LIBRARY_NAME=mesa
+ export VK_ICD_FILENAMES="${VK_ICD_FILENAMES:-/run/opengl-driver/share/vulkan/icd.d/radeon_icd.x86_64.json}"
+ export VK_DRIVER_FILES="${VK_DRIVER_FILES:-/run/opengl-driver/share/vulkan/icd.d/radeon_icd.x86_64.json}"
+ export __NV_PRIME_RENDER_OFFLOAD="${__NV_PRIME_RENDER_OFFLOAD:-0}"
+ export __GLX_VENDOR_LIBRARY_NAME="${__GLX_VENDOR_LIBRARY_NAME:-mesa}"
   export AVALONIA_RENDERER=vulkan WINEFSYNC=1 WINEESYNC=1
- export WINEDLLOVERRIDES="mscoree=b;mshtml=b;wmiutils=b;wbemprox=b;uiautomationcore=d;oleacc=d;dwrite=b"
+ export WINEDLLOVERRIDES="mscoree=b;mshtml=b;wmiutils=b;wbemprox=b;uiautomationcore=d;oleacc=d;dwrite=b;${WINEDLLOVERRIDES}"
 export WINE_X11_NO_MITSHM=1
 export DXVK_CONFIG="dxgi.maxDeviceMemory=0;dxvk.allowMemoryOvercommit=True;dxgi.syncInterval=0;dxgi.numBackBuffers=3;dxvk.enableAsync=True;dxgi.nvapiHack=False;dxvk.numCompilerThreads=0;dxgi.enableDummyCompositionSwapchain=True"
 export ANGLE_DEFAULT_PLATFORM=d3d11
@@ -108,8 +108,13 @@ wine reg add "HKLM\\HARDWARE\\Description\\System\\BIOS" /v BIOSSerialNumber /t 
 wine reg add "HKLM\\HARDWARE\\Description\\System\\BIOS" /v BaseBoardSerialNumber /t REG_SZ /d "MB-ATAS-998877" /f >/dev/null 2>&1
 wine reg add "HKCU\\Software\\Wine\\Drivers" /v Graphics /t REG_SZ /d "wayland,x11" /f >/dev/null 2>&1
 wine reg add "HKCU\\Software\\Wine\\Drivers" /v Audio /t REG_SZ /d "pulse" /f >/dev/null 2>&1
-wine reg delete "HKCU\\Software\\Wine\\Explorer" /v Desktop /f >/dev/null 2>&1 || true
-wine reg delete "HKCU\\Software\\Wine\\Explorer\\Desktops" /f >/dev/null 2>&1 || true
+if [ -n "${ATAS_VIRTUAL_DESKTOP}" ]; then
+  wine reg add "HKCU\\Software\\Wine\\Explorer" /v Desktop /t REG_SZ /d "ATAS_Desktop" /f >/dev/null 2>&1 || true
+  wine reg add "HKCU\\Software\\Wine\\Explorer\\Desktops" /v ATAS_Desktop /t REG_SZ /d "${ATAS_VIRTUAL_DESKTOP}" /f >/dev/null 2>&1 || true
+else
+  wine reg delete "HKCU\\Software\\Wine\\Explorer" /v Desktop /f >/dev/null 2>&1 || true
+  wine reg delete "HKCU\\Software\\Wine\\Explorer\\Desktops" /f >/dev/null 2>&1 || true
+fi
 
 if [ "$1" == "--command" ]; then shift; exec wine "$@"; fi
 if [ "$1" == "--trace" ]; then export WINEDEBUG="+winsock,+ws2_32,+iphlpapi,+winhttp,+secur32,+crypt,+module"; fi

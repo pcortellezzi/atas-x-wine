@@ -4,10 +4,21 @@
 #include <stdarg.h>
 
 void log_launcher(const char* format, ...) {
-    // Logging disabled for production performance
+    FILE* f = fopen("C:\\atas_launcher.log", "a");
+    if (f) {
+        va_list args;
+        va_start(args, format);
+        vfprintf(f, format, args);
+        va_end(args);
+        fclose(f);
+    }
 }
 
 int main(int argc, char* argv[]) {
+    // Clear previous log
+    FILE* f = fopen("C:\\atas_launcher.log", "w");
+    if (f) fclose(f);
+
     log_launcher("--- atas_launcher started ---\n");
     const wchar_t* targetExe = L"C:\\Program Files\\ATAS X\\OFT.PlatformX.exe";
     if (GetFileAttributesW(targetExe) == INVALID_FILE_ATTRIBUTES) {
@@ -39,8 +50,10 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    log_launcher("Process created, sleeping 200ms for loader init...\n");
-    Sleep(200);
+    // Wait only 50ms - fast enough to inject before assembly load & window creation,
+    // but long enough for process memory structures to stabilize.
+    log_launcher("Process created with PID %d. Sleeping 50ms for loader init...\n", (int)pi.dwProcessId);
+    Sleep(50);
 
     log_launcher("Allocating memory in target process...\n");
     int pathLen = strlen(dllPath) + 1;
@@ -85,6 +98,12 @@ int main(int argc, char* argv[]) {
     
     CloseHandle(hThread);
     VirtualFreeEx(pi.hProcess, remoteMem, 0, MEM_RELEASE);
+
+    if (exitCode == 0) {
+        log_launcher("Warning: LoadLibraryA returned NULL! DLL Injection failed.\n");
+        TerminateProcess(pi.hProcess, 1);
+        return 1;
+    }
 
     log_launcher("Injected successfully, waiting for ATAS process to exit...\n");
     WaitForSingleObject(pi.hProcess, INFINITE);

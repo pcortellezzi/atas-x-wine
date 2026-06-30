@@ -51,3 +51,19 @@ atas-updater
 ## 🐧 Usage on other distributions (Ubuntu, Arch, Fedora)
 
 See the detailed guide [dist/DISTRIBUTION_GUIDE.md](dist/DISTRIBUTION_GUIDE.md) to install the application outside NixOS using our universal standalone package.
+
+---
+
+## 🖥️ Wayland & Multi-Monitor Drag & Drop Notes
+
+Due to the security design of the **Wayland** protocol, absolute screen coordinates are hidden from client applications. Wine has no native way to determine the absolute spatial relationship between windows positioned by the compositor (e.g. KWin).
+
+To make window interactions and docking usable under Wayland, the hook DLL implements several low-level workarounds:
+1. **Dynamic Monitor Tracking**: Matches active window positions virtualized in Wine to the physical monitor offset (`0` or `1920`) based on active foreground interactions.
+2. **Hook-Based Mouse Redirection**: Redirects low-level mouse messages to the drag source window using custom atomic pointer detours on `SetCapture`, `ReleaseCapture`, and `GetCapture` in `user32.dll`.
+3. **Background Suppression**: Blocks cursor and focus activation messages on background windows while dragging to prevent them from hijacking mouse capture.
+
+### Known Limitations under Wayland:
+* **Intra-window Drag & Drop**: Fully supported. Widgets can be rearranged inside their parent windows. Drop preview overlays may show minor alignment offsets, but drop placement is accurate.
+* **Inter-window Drag & Drop**: Not supported. Due to Wayland's isolated surface architecture, dragging widgets *between* separate top-level windows will not resolve coordinates correctly. Use separate windows as independent workspaces.
+
