@@ -45,10 +45,51 @@ PeekMessageW_t g_orig_PeekMessageW = NULL;
 CRITICAL_SECTION g_cs_window_tracker;
 HWND g_atas_windows[10] = {0};
 WNDPROC g_orig_WndProcs[10] = {0};
-int g_window_monitors[10] = {0}; // Track which physical monitor (0 or 1) the window is on
+int g_window_monitors[10] = {0}; // Track which physical monitor index the window is on
 int g_atas_count = 0;
 
 HWND g_main_window_capture = NULL; // Stores the main window that currently has active drag capture
+
+// Dynamic Monitor Enumeration structures
+struct MonitorInfo {
+    RECT rect;
+};
+MonitorInfo g_monitors[10] = {0};
+int g_monitor_count = 0;
+
+// Enumerate display monitors callback
+BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData) {
+    if (g_monitor_count < 10) {
+        g_monitors[g_monitor_count].rect = *lprcMonitor;
+        g_monitor_count++;
+    }
+    return TRUE;
+}
+
+// Query display monitor layout dynamically from Wine/compositor configuration
+void query_monitors() {
+    EnterCriticalSection(&g_cs_window_tracker);
+    g_monitor_count = 0;
+    EnumDisplayMonitors(NULL, NULL, MonitorEnumProc, 0);
+    
+    // Sort monitors by left coordinate (left-to-right) so they map logically
+    for (int i = 0; i < g_monitor_count - 1; i++) {
+        for (int j = i + 1; j < g_monitor_count; j++) {
+            if (g_monitors[i].rect.left > g_monitors[j].rect.left) {
+                MonitorInfo temp = g_monitors[i];
+                g_monitors[i] = g_monitors[j];
+                g_monitors[j] = temp;
+            }
+        }
+    }
+    log_message("Detected %d physical monitor(s):\n", g_monitor_count);
+    for (int i = 0; i < g_monitor_count; i++) {
+        log_message("  Monitor %d: bounds (%ld, %ld) - (%ld, %ld)\n",
+                    i, g_monitors[i].rect.left, g_monitors[i].rect.top,
+                    g_monitors[i].rect.right, g_monitors[i].rect.bottom);
+    }
+    LeaveCriticalSection(&g_cs_window_tracker);
+}
 
 // Update window's virtual position in Wine to match the monitor it is physically on
 void update_window_virtual_monitor(HWND hWnd, int idx) {
@@ -56,23 +97,37 @@ void update_window_virtual_monitor(HWND hWnd, int idx) {
     
     POINT pt;
     if (GetCursorPos(&pt)) {
-        int active_monitor = (pt.x >= 1920) ? 1 : 0;
+        EnterCriticalSection(&g_cs_window_tracker);
+        int active_monitor = 0;
         
-        // If monitor changed, update the tracked monitor and align virtual coordinates
+        // Find which enumerated monitor bounds contain the mouse cursor
+        for (int i = 0; i < g_monitor_count; i++) {
+            if (PtInRect(&g_monitors[i].rect, pt)) {
+                active_monitor = i;
+                break;
+            }
+        }
+        
+        // If monitor changed, update the tracked monitor index
         if (g_window_monitors[idx] != active_monitor) {
             g_window_monitors[idx] = active_monitor;
             log_message("Window HWND=%p moved physically to Monitor %d\n", hWnd, active_monitor);
         }
         
         // Ensure Wine's virtual coordinates match the physical monitor offset
-        RECT r;
-        GetWindowRect(hWnd, &r);
-        int target_x = active_monitor * 1920;
-        if (r.left != target_x) {
-            log_message("Syncing window HWND=%p virtual X from %ld to %d\n", hWnd, r.left, target_x);
-            g_orig_SetWindowPos(hWnd, NULL, target_x, r.top, r.right - r.left, r.bottom - r.top, 
-                                SWP_NOZORDER | SWP_NOACTIVATE);
+        if (active_monitor < g_monitor_count) {
+            RECT r;
+            GetWindowRect(hWnd, &r);
+            int target_x = g_monitors[active_monitor].rect.left;
+            int target_y = g_monitors[active_monitor].rect.top;
+            if (r.left != target_x || r.top != target_y) {
+                log_message("Syncing window HWND=%p virtual origin from (%ld, %ld) to (%d, %d)\n", 
+                            hWnd, r.left, r.top, target_x, target_y);
+                g_orig_SetWindowPos(hWnd, NULL, target_x, target_y, r.right - r.left, r.bottom - r.top, 
+                                    SWP_NOZORDER | SWP_NOACTIVATE);
+            }
         }
+        LeaveCriticalSection(&g_cs_window_tracker);
     }
 }
 
@@ -92,6 +147,12 @@ LRESULT CALLBACK Hooked_WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lPar
     LeaveCriticalSection(&g_cs_window_tracker);
     
     WNDPROC orig = (idx >= 0 && idx < 10) ? g_orig_WndProcs[idx] : ::DefWindowProcW;
+    
+    // Dynamic hotplug re-querying when displays configurations change
+    if (uMsg == WM_DISPLAYCHANGE) {
+        log_message("Display geometry change detected! Re-querying layout...\n");
+        query_monitors();
+    }
     
     // Dynamically track monitor, but ONLY when window is clicked or actively focused, NEVER during dragging or deactivation!
     if (idx >= 0 && g_main_window_capture == NULL) {
@@ -152,7 +213,12 @@ int get_atas_window_index(HWND hWnd) {
             if ((style & WS_VISIBLE) && !(style & WS_CHILD) && !(exStyle & WS_EX_TOOLWINDOW)) {
                 if (g_atas_count < 10) {
                     g_atas_windows[g_atas_count] = hWnd;
-                    g_window_monitors[g_atas_count] = g_atas_count % 2; // Initial guess (Window 0 -> screen 0, Window 1 -> screen 1)
+                    
+                    int initial_monitor = 0;
+                    if (g_monitor_count > 0) {
+                        initial_monitor = g_atas_count % g_monitor_count;
+                    }
+                    g_window_monitors[g_atas_count] = initial_monitor; // Initial guess matching logical order
                     found_idx = g_atas_count;
                     log_message("Matched main window HWND=%p at index %d (Default monitor %d)\n", hWnd, found_idx, g_window_monitors[found_idx]);
                     
@@ -196,14 +262,17 @@ extern "C" BOOL WINAPI Hooked_SetWindowPos(HWND hWnd, HWND hWndInsertAfter, int 
     } else {
         int idx = get_atas_window_index(hWnd);
         if (idx >= 0) {
-            // Keep the window aligned to its detected monitor (0 or 1920)
-            X = g_window_monitors[idx] * 1920;
-            if (uFlags & SWP_NOMOVE) {
-                RECT r;
-                GetWindowRect(hWnd, &r);
-                Y = r.top;
-                uFlags &= ~SWP_NOMOVE;
+            // Keep the window aligned to its detected monitor bounds
+            int monitor = g_window_monitors[idx];
+            EnterCriticalSection(&g_cs_window_tracker);
+            if (monitor < g_monitor_count) {
+                X = g_monitors[monitor].rect.left;
+                Y = g_monitors[monitor].rect.top;
+                if (uFlags & SWP_NOMOVE) {
+                    uFlags &= ~SWP_NOMOVE;
+                }
             }
+            LeaveCriticalSection(&g_cs_window_tracker);
         }
     }
     if (g_orig_SetWindowPos) {
@@ -219,13 +288,16 @@ extern "C" HDWP WINAPI Hooked_DeferWindowPos(HDWP hWinPosInfo, HWND hWnd, HWND h
     } else {
         int idx = get_atas_window_index(hWnd);
         if (idx >= 0) {
-            x = g_window_monitors[idx] * 1920;
-            if (uFlags & SWP_NOMOVE) {
-                RECT r;
-                GetWindowRect(hWnd, &r);
-                y = r.top;
-                uFlags &= ~SWP_NOMOVE;
+            int monitor = g_window_monitors[idx];
+            EnterCriticalSection(&g_cs_window_tracker);
+            if (monitor < g_monitor_count) {
+                x = g_monitors[monitor].rect.left;
+                y = g_monitors[monitor].rect.top;
+                if (uFlags & SWP_NOMOVE) {
+                    uFlags &= ~SWP_NOMOVE;
+                }
             }
+            LeaveCriticalSection(&g_cs_window_tracker);
         }
     }
     if (g_orig_DeferWindowPos) {
@@ -373,6 +445,7 @@ void* hook_stub(void* func_addr, void* hook_func) {
 
 void install_all_hooks() {
     InitializeCriticalSection(&g_cs_window_tracker);
+    query_monitors();
     
     HMODULE hNtdll = GetModuleHandleA("ntdll.dll");
     if (!hNtdll) return;
